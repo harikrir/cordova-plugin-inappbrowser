@@ -1246,7 +1246,13 @@ public class InAppBrowser extends CordovaPlugin {
                 if(method != null) {
                     obj.put("method", method);
                 }
-                sendUpdate(obj, true);
+                webView.post(() -> {
+           try {
+               sendUpdate(obj, true); // triggers JS 'beforeload' event
+           } catch (Exception ex) {
+               LOG.e(LOG_TAG, "Error sending beforeload update", ex);
+           }
+       });
                 return true;
             } catch (JSONException ex) {
                 LOG.e(LOG_TAG, "URI passed in has caused a JSON error.");
