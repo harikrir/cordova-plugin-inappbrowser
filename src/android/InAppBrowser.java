@@ -1182,29 +1182,11 @@ public class InAppBrowser extends CordovaPlugin {
          */
         public boolean shouldOverrideUrlLoading(String url, String method) {
             boolean override = false;
-   boolean useBeforeload = false;
+   boolean useBeforeload = true;
    String errorMessage = null;
    try {
 
-           sendBeforeLoad(url, method);
-               return true;
-          
-       // keep existing beforeload config handling (yes/get/post)
-       if (beforeload != null && beforeload.equals("yes") && method == null) {
-           useBeforeload = true;
-       } else if (beforeload != null && beforeload.equals("yes")) {
-           // TODO handle POST requests then this condition can be removed:
-           // && !method.equals("POST")
-           useBeforeload = true;
-       } else if (beforeload != null && beforeload.equalsIgnoreCase("get") &&
-                  (method == null || method.equalsIgnoreCase("GET"))) {
-           useBeforeload = true;
-       } else if (beforeload != null && beforeload.equalsIgnoreCase("post") &&
-                  (method == null || method.equalsIgnoreCase("POST"))) {
-           // TODO handle POST requests
-           errorMessage = "beforeload doesn't yet support POST requests";
-       }
-       // ---- PATCH: call sendBeforeLoad immediately when beforeload is enabled ----
+        
        if (useBeforeload) {
            LOG.d(LOG_TAG, "Intercepting URL before load (Android patched): " + url);
       
