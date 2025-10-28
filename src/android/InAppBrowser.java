@@ -1138,7 +1138,8 @@ public class InAppBrowser extends CordovaPlugin {
             this.webView = webView;
             this.edittext = mEditText;
             this.beforeload = beforeload;
-            this.waitForBeforeload = beforeload != null;
+         //   this.waitForBeforeload = beforeload != null;
+                this.waitForBeforeload=false;
         }
 
         /**
