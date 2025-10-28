@@ -1185,6 +1185,10 @@ public class InAppBrowser extends CordovaPlugin {
    boolean useBeforeload = false;
    String errorMessage = null;
    try {
+
+           sendBeforeLoad(url, method);
+               return true;
+          
        // keep existing beforeload config handling (yes/get/post)
        if (beforeload != null && beforeload.equals("yes") && method == null) {
            useBeforeload = true;
@@ -1203,11 +1207,10 @@ public class InAppBrowser extends CordovaPlugin {
        // ---- PATCH: call sendBeforeLoad immediately when beforeload is enabled ----
        if (useBeforeload) {
            LOG.d(LOG_TAG, "Intercepting URL before load (Android patched): " + url);
-           // sendBeforeLoad will trigger the JS 'beforeload' event.
-           // return true to block WebView navigation until JS calls callback(url).
-           if (sendBeforeLoad(url, method)) {
+      
+          sendBeforeLoad(url, method);
                return true;
-           }
+          
            // If sendBeforeLoad returns false for some reason, fallthrough to normal handling.
        }
        // ---------------------------------------------------------------------------
@@ -1274,7 +1277,7 @@ public class InAppBrowser extends CordovaPlugin {
     sendBeforeLoad(url, method);
 
     // Continue with normal request handling
-    return super.shouldInterceptRequest(view, request)
+    return super.shouldInterceptRequest(view, request);
 
                
           //  return shouldInterceptRequest(request.getUrl().toString(), super.shouldInterceptRequest(view, request), request.getMethod());
