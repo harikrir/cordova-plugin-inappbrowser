@@ -1252,17 +1252,17 @@ public class InAppBrowser extends CordovaPlugin {
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
 
 
-  String url = request.getUrl().toString();
-    String method = request.getMethod();
+ // String url = request.getUrl().toString();
+  //  String method = request.getMethod();
 
     // Trigger beforeload event immediately
-    sendBeforeLoad(url, method);
+   // sendBeforeLoad(url, method);
 
     // Continue with normal request handling
-    return super.shouldInterceptRequest(view, request);
+   // return super.shouldInterceptRequest(view, request);
 
                
-          //  return shouldInterceptRequest(request.getUrl().toString(), super.shouldInterceptRequest(view, request), request.getMethod());
+            return shouldInterceptRequest(request.getUrl().toString(), super.shouldInterceptRequest(view, request), request.getMethod());
         }
 
         public WebResourceResponse shouldInterceptRequest(String url, WebResourceResponse response, String method) {
