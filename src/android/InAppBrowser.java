@@ -1278,6 +1278,10 @@ public class InAppBrowser extends CordovaPlugin {
          */
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
+
+               
+    sendBeforeLoad(url, "");
+               
             super.onPageStarted(view, url, favicon);
             String newloc = "";
             if (url.startsWith("http:") || url.startsWith("https:") || url.startsWith("file:")) {
