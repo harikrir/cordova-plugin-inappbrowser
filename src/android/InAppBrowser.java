@@ -1324,21 +1324,22 @@ public class InAppBrowser extends CordovaPlugin {
          * @param request
          */
         @Override
-        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {   
+
+                 String url = request.getUrl().toString();
+               LOG.e(LOG_TAG, "shouldInterceptRequest--> " + url );
+
+    if (url.contains("/mobilelogin")) {
+           sendBeforeLoad(url,request.getMethod());
+    }
+
+
+
+               
             return shouldInterceptRequest(request.getUrl().toString(), super.shouldInterceptRequest(view, request), request.getMethod());
         }
 
         public WebResourceResponse shouldInterceptRequest(String url, WebResourceResponse response, String method) {
-
-                 LOG.e(LOG_TAG, "shouldInterceptRequest--> " + url );
-
-   String url = request.getUrl().toString();
-
-    if (url.contains("/mobilelogin")) {
-           sendBeforeLoad(url,method);
-    }
-
-
                
                
             return response;
