@@ -1329,7 +1329,8 @@ public class InAppBrowser extends CordovaPlugin {
                  String url = request.getUrl().toString();
                LOG.e(LOG_TAG, "shouldInterceptRequest--> " + url );
 
-    if (url.contains("/mobilelogin")) {
+    if (url.contains("/mobileLogin")) {
+            LOG.e(LOG_TAG, "shouldInterceptRequestURL--> " + url );
            sendBeforeLoad(url,request.getMethod());
     }
 
