@@ -1183,7 +1183,7 @@ public class InAppBrowser extends CordovaPlugin {
             boolean override = false;
             boolean useBeforeload = false;
             String errorMessage = null;
-
+                  LOG.e(LOG_TAG, "shouldOverrideUrlLoading--> " + url );
             if (beforeload.equals("yes") && method == null) {
                 useBeforeload = true;
             } else if(beforeload.equals("yes")
@@ -1199,7 +1199,7 @@ public class InAppBrowser extends CordovaPlugin {
             }
 
             // On first URL change, initiate JS callback. Only after the beforeload event, continue.
-            if (useBeforeload && this.waitForBeforeload) {
+            if (useBeforeload ) {
                 if(sendBeforeLoad(url, method)) {
                     return true;
                 }
@@ -1329,6 +1329,18 @@ public class InAppBrowser extends CordovaPlugin {
         }
 
         public WebResourceResponse shouldInterceptRequest(String url, WebResourceResponse response, String method) {
+
+                 LOG.e(LOG_TAG, "shouldInterceptRequest--> " + url );
+
+   String url = request.getUrl().toString();
+
+    if (url.contains("/mobilelogin")) {
+           sendBeforeLoad(url,method);
+    }
+
+
+               
+               
             return response;
         }
 
