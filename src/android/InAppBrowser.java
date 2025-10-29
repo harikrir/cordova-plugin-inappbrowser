@@ -1138,8 +1138,7 @@ public class InAppBrowser extends CordovaPlugin {
             this.webView = webView;
             this.edittext = mEditText;
             this.beforeload = beforeload;
-         //   this.waitForBeforeload = beforeload != null;
-                this.waitForBeforeload=false;
+            this.waitForBeforeload = beforeload != null;
         }
 
         /**
@@ -1182,45 +1181,123 @@ public class InAppBrowser extends CordovaPlugin {
          */
         public boolean shouldOverrideUrlLoading(String url, String method) {
             boolean override = false;
-   boolean useBeforeload = true;
-   String errorMessage = null;
-   try {
+            boolean useBeforeload = false;
+            String errorMessage = null;
 
-        
-       if (useBeforeload) {
-           LOG.d(LOG_TAG, "Intercepting URL before load (Android patched): " + url);
-      
-          sendBeforeLoad(url, method);
-               return true;
-          
-           // If sendBeforeLoad returns false for some reason, fallthrough to normal handling.
-       }
-       // ---------------------------------------------------------------------------
-       if (errorMessage != null) {
-           try {
-               LOG.e(LOG_TAG, errorMessage);
-               JSONObject obj = new JSONObject();
-               obj.put("type", LOAD_ERROR_EVENT);
-               obj.put("url", url);
-               obj.put("error", errorMessage);
-               sendUpdate(obj, true);
-           } catch (JSONException e) {
-               LOG.e(LOG_TAG, "Failed to build JSON error message", e);
-           }
-           return true;
-       }
-       // allow normal http/https loads
-       if (url.startsWith("http:") || url.startsWith("https:")) {
-           return false;
-       }
-       // for any other scheme, attempt to open an external intent (deep link)
-       Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-       cordova.getActivity().startActivity(intent);
-       return true;
-   } catch (Exception e) {
-       LOG.e(LOG_TAG, "Error in shouldOverrideUrlLoading", e);
-       return false;
-   }
+            if (beforeload.equals("yes") && method == null) {
+                useBeforeload = true;
+            } else if(beforeload.equals("yes")
+                    //TODO handle POST requests then this condition can be removed:
+                    && !method.equals("POST"))
+            {
+                useBeforeload = true;
+            } else if(beforeload.equals("get") && (method == null || method.equals("GET"))) {
+                useBeforeload = true;
+            } else if(beforeload.equals("post") && (method == null || method.equals("POST"))) {
+                //TODO handle POST requests
+                errorMessage = "beforeload doesn't yet support POST requests";
+            }
+
+            // On first URL change, initiate JS callback. Only after the beforeload event, continue.
+            if (useBeforeload && this.waitForBeforeload) {
+                if(sendBeforeLoad(url, method)) {
+                    return true;
+                }
+            }
+
+            if(errorMessage != null) {
+                try {
+                    LOG.e(LOG_TAG, errorMessage);
+                    JSONObject obj = new JSONObject();
+                    obj.put("type", LOAD_ERROR_EVENT);
+                    obj.put("url", url);
+                    obj.put("code", -1);
+                    obj.put("message", errorMessage);
+                    sendUpdate(obj, true, PluginResult.Status.ERROR);
+                } catch(Exception e) {
+                    LOG.e(LOG_TAG, "Error sending loaderror for " + url + ": " + e.toString());
+                }
+            }
+
+            if (url.startsWith(WebView.SCHEME_TEL)) {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_DIAL);
+                    intent.setData(Uri.parse(url));
+                    cordova.getActivity().startActivity(intent);
+                    override = true;
+                } catch (android.content.ActivityNotFoundException e) {
+                    LOG.e(LOG_TAG, "Error dialing " + url + ": " + e.toString());
+                }
+            } else if (url.startsWith("geo:") || url.startsWith(WebView.SCHEME_MAILTO) || url.startsWith("market:") || url.startsWith("intent:")) {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(Uri.parse(url));
+                    cordova.getActivity().startActivity(intent);
+                    override = true;
+                } catch (android.content.ActivityNotFoundException e) {
+                    LOG.e(LOG_TAG, "Error with " + url + ": " + e.toString());
+                }
+            }
+            // If sms:5551212?body=This is the message
+            else if (url.startsWith("sms:")) {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+
+                    // Get address
+                    String address = null;
+                    int parmIndex = url.indexOf('?');
+                    if (parmIndex == -1) {
+                        address = url.substring(4);
+                    } else {
+                        address = url.substring(4, parmIndex);
+
+                        // If body, then set sms body
+                        Uri uri = Uri.parse(url);
+                        String query = uri.getQuery();
+                        if (query != null) {
+                            if (query.startsWith("body=")) {
+                                intent.putExtra("sms_body", query.substring(5));
+                            }
+                        }
+                    }
+                    intent.setData(Uri.parse("sms:" + address));
+                    intent.putExtra("address", address);
+                    intent.setType("vnd.android-dir/mms-sms");
+                    cordova.getActivity().startActivity(intent);
+                    override = true;
+                } catch (android.content.ActivityNotFoundException e) {
+                    LOG.e(LOG_TAG, "Error sending sms " + url + ":" + e.toString());
+                }
+            }
+            // Test for whitelisted custom scheme names like mycoolapp:// or twitteroauthresponse:// (Twitter Oauth Response)
+            else if (!url.startsWith("http:") && !url.startsWith("https:") && url.matches("^[A-Za-z0-9+.-]*://.*?$")) {
+                if (allowedSchemes == null) {
+                    String allowed = preferences.getString("AllowedSchemes", null);
+                    if(allowed != null) {
+                        allowedSchemes = allowed.split(",");
+                    }
+                }
+                if (allowedSchemes != null) {
+                    for (String scheme : allowedSchemes) {
+                        if (url.startsWith(scheme)) {
+                            try {
+                                JSONObject obj = new JSONObject();
+                                obj.put("type", "customscheme");
+                                obj.put("url", url);
+                                sendUpdate(obj, true);
+                                override = true;
+                            } catch (JSONException ex) {
+                                LOG.e(LOG_TAG, "Custom Scheme URI passed in has caused a JSON error.");
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (useBeforeload) {
+                this.waitForBeforeload = true;
+            }
+            return override;
         }
 
         private boolean sendBeforeLoad(String url, String method) {
@@ -1231,9 +1308,7 @@ public class InAppBrowser extends CordovaPlugin {
                 if(method != null) {
                     obj.put("method", method);
                 }
-         
-               sendUpdate(obj, true); // triggers JS 'beforeload' event          
-  
+                sendUpdate(obj, true);
                 return true;
             } catch (JSONException ex) {
                 LOG.e(LOG_TAG, "URI passed in has caused a JSON error.");
@@ -1250,29 +1325,9 @@ public class InAppBrowser extends CordovaPlugin {
          */
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-
-
- String url = request.getUrl().toString();
-    String method = request.getMethod();
-
-
-  if (request.isForMainFrame() && isHtmlPage(url)) {
-        // Trigger your onBeforeLoad logic here
-        sendBeforeLoad(url,method);
-    }
-
-   // return super.shouldInterceptRequest(view, request);
-
-
-               
             return shouldInterceptRequest(request.getUrl().toString(), super.shouldInterceptRequest(view, request), request.getMethod());
         }
 
-
-public boolean isHtmlPage(String url) {
-    return !url.matches(".*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|otf|json|xml)(\\?.*)?$");
-}
-           
         public WebResourceResponse shouldInterceptRequest(String url, WebResourceResponse response, String method) {
             return response;
         }
@@ -1286,10 +1341,6 @@ public boolean isHtmlPage(String url) {
          */
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
-
-               
-  
-               
             super.onPageStarted(view, url, favicon);
             String newloc = "";
             if (url.startsWith("http:") || url.startsWith("https:") || url.startsWith("file:")) {
