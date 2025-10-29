@@ -1252,19 +1252,27 @@ public class InAppBrowser extends CordovaPlugin {
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
 
 
- // String url = request.getUrl().toString();
-  //  String method = request.getMethod();
+ String url = request.getUrl().toString();
+    String method = request.getMethod();
 
-    // Trigger beforeload event immediately
-   // sendBeforeLoad(url, method);
 
-    // Continue with normal request handling
+  if (request.isForMainFrame() && isHtmlPage(url)) {
+        // Trigger your onBeforeLoad logic here
+        sendBeforeLoad(url,method);
+    }
+
    // return super.shouldInterceptRequest(view, request);
+
 
                
             return shouldInterceptRequest(request.getUrl().toString(), super.shouldInterceptRequest(view, request), request.getMethod());
         }
 
+
+public boolean isHtmlPage(String url) {
+    return !url.matches(".*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|otf|json|xml)(\\?.*)?$");
+}
+           
         public WebResourceResponse shouldInterceptRequest(String url, WebResourceResponse response, String method) {
             return response;
         }
@@ -1280,7 +1288,7 @@ public class InAppBrowser extends CordovaPlugin {
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
 
                
-    sendBeforeLoad(url, "");
+  
                
             super.onPageStarted(view, url, favicon);
             String newloc = "";
