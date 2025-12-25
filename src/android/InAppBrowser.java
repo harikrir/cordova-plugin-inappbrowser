@@ -1341,11 +1341,11 @@ public class InAppBrowser extends CordovaPlugin {
          * @param view
          * @param request
          */
-        @Override
+    /**     @Override
 
 
            
-    /**   public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {   
+      public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {   
 
                  String url = request.getUrl().toString();
                LOG.e(LOG_TAG, "shouldInterceptRequest--> " + url );
