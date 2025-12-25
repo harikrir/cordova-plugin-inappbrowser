@@ -1342,17 +1342,20 @@ public class InAppBrowser extends CordovaPlugin {
          * @param request
          */
         @Override
-        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {   
+
+
+           
+    /**   public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {   
 
                  String url = request.getUrl().toString();
                LOG.e(LOG_TAG, "shouldInterceptRequest--> " + url );
-/**
+
      if (url.contains("/mobileLogin")) {
              LOG.e(LOG_TAG, "shouldInterceptRequestURL--> " + url );
-           // sendBeforeLoad(url,request.getMethod());
-            shouldOverrideUrlLoading(url,request.getMethod());
+           sendBeforeLoad(url,request.getMethod());
+            
      }
-     */           
+                
             return shouldInterceptRequest(request.getUrl().toString(), super.shouldInterceptRequest(view, request), request.getMethod());
         }
 
@@ -1361,6 +1364,43 @@ public class InAppBrowser extends CordovaPlugin {
                
             return response;
         }
+
+*/
+
+           @Override
+public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+   final String url = request.getUrl().toString();
+   LOG.e(LOG_TAG, "shouldInterceptRequest--> " + url);
+   // 1. Detect the URL you want to block (eKey/mobileLogin)
+   if (url.contains("/mobileLogin") || url.contains("awaitMobile")) {
+       LOG.e(LOG_TAG, "BLOCKING and Opening Externally: " + url);
+       // 2. Notify your JavaScript via the Message Bridge
+      /** cordova.getActivity().runOnUiThread(new Runnable() {
+           @Override
+           public void run() {
+               // This sends the URL to your 'message' listener in JS
+               String js = "window.webkit.messageHandlers.cordova_iab.postMessage(JSON.stringify({type:'EXTERNAL_OPEN', url:'" + url + "'}));";
+               view.evaluateJavascript(js, null);
+           }
+       }); */
+
+           sendBeforeLoad(url,request.getMethod());
+       // 3. THIS IS THE KEY: Return an EMPTY response instead of super
+       // This stops the WebView from loading the URL.
+       return new WebResourceResponse("text/plain", "UTF-8", null);
+   }
+   // 4. For everything else, use your old "pass-through" logic
+   return shouldInterceptRequest(url, super.shouldInterceptRequest(view, request), request.getMethod());
+}
+// Your helper function can stay as it is for non-blocked URLs
+public WebResourceResponse shouldInterceptRequest(String url, WebResourceResponse response, String method) {
+   return response; // response will be null here for normal loads, which is correct
+}
+
+
+
+           
+           
 
         /*
          * onPageStarted fires the LOAD_START_EVENT
