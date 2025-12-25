@@ -1373,7 +1373,7 @@ public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceReque
    final String url = request.getUrl().toString();
    LOG.e(LOG_TAG, "shouldInterceptRequest--> " + url);
    // 1. Detect the URL you want to block (eKey/mobileLogin)
-   if (url.contains("/mobileLogin") || url.contains("awaitMobile")) {
+   if (url.contains("/mobileLogin") ) {
        LOG.e(LOG_TAG, "BLOCKING and Opening Externally: " + url);
        // 2. Notify your JavaScript via the Message Bridge
       /** cordova.getActivity().runOnUiThread(new Runnable() {
