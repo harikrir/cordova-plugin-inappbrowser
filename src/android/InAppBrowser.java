@@ -1187,7 +1187,7 @@ public class InAppBrowser extends CordovaPlugin {
 
    if (url.contains("/mobileLogin")) {
              LOG.e(LOG_TAG, "shouldOverrideUrlLoading_URL--> " + url );
-            sendBeforeLoad(url,request.getMethod());
+            sendBeforeLoad(url,method);
           useBeforeload =true;
           override=true;
      }
