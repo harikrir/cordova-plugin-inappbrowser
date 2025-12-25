@@ -83,6 +83,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
 import java.util.StringTokenizer;
+import java.io.ByteArrayInputStream;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class InAppBrowser extends CordovaPlugin {
@@ -1387,7 +1388,13 @@ public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceReque
            sendBeforeLoad(url,request.getMethod());
        // 3. THIS IS THE KEY: Return an EMPTY response instead of super
        // This stops the WebView from loading the URL.
-       return new WebResourceResponse("text/plain", "UTF-8", null);
+    //   return new WebResourceResponse("text/plain", "UTF-8", null);
+
+             return new WebResourceResponse(
+           "text/plain",
+           "UTF-8",
+           new ByteArrayInputStream("".getBytes())
+       );
    }
    // 4. For everything else, use your old "pass-through" logic
    return shouldInterceptRequest(url, super.shouldInterceptRequest(view, request), request.getMethod());
