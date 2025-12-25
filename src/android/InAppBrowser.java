@@ -1187,7 +1187,14 @@ public class InAppBrowser extends CordovaPlugin {
 
    if (url.contains("/mobileLogin")) {
              LOG.e(LOG_TAG, "shouldOverrideUrlLoading_URL--> " + url );
-            sendBeforeLoad(url,method);
+           // sendBeforeLoad(url,method);
+          useBeforeload =true;
+          override=true;
+     }
+
+                if (url.contains("/awaitMobile")) {
+             LOG.e(LOG_TAG, "shouldOverrideUrlLoading_URL--> " + url );
+           // sendBeforeLoad(url,method);
           useBeforeload =true;
           override=true;
      }
@@ -1339,13 +1346,13 @@ public class InAppBrowser extends CordovaPlugin {
 
                  String url = request.getUrl().toString();
                LOG.e(LOG_TAG, "shouldInterceptRequest--> " + url );
-
+/**
      if (url.contains("/mobileLogin")) {
              LOG.e(LOG_TAG, "shouldInterceptRequestURL--> " + url );
            // sendBeforeLoad(url,request.getMethod());
             shouldOverrideUrlLoading(url,request.getMethod());
      }
-               
+     */           
             return shouldInterceptRequest(request.getUrl().toString(), super.shouldInterceptRequest(view, request), request.getMethod());
         }
 
